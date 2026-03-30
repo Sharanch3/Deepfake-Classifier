@@ -53,7 +53,7 @@ def predict(image_path):
 
     if trained_model is None:
         trained_model = DeepFakeClassifierResNet()
-        trained_model.load_state_dict(torch.load("../artifacts/model.pth", map_location= torch.device("cpu")))
+        trained_model.load_state_dict(torch.load("./artifacts/model.pth", map_location= torch.device("cpu")))
         trained_model.eval()
 
 
