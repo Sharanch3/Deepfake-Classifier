@@ -1,3 +1,5 @@
+# 🎭 Deepfake Image Classifier
+
 ## Problem Statement
 
 The rise of AI image generation tools has made it trivially easy to produce photorealistic fake images, enabling misinformation, identity fraud, and media manipulation at scale. Manually identifying these deepfakes is unreliable and does not scale.
