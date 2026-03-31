@@ -1,12 +1,8 @@
-# Problem Statement
+## Problem Statement
+
 The rise of AI image generation tools has made it trivially easy to produce photorealistic fake images, enabling misinformation, identity fraud, and media manipulation at scale. Manually identifying these deepfakes is unreliable and does not scale.
-This project builds a binary image classifier to automatically distinguish real photographs from AI-generated images. Using transfer learning on a pre-trained ResNet-50 backbone, the model learns subtle deepfake artifacts without requiring large datasets or extensive compute — and is deployed as a simple web app so anyone can verify an image instantly.
 
----
-
-# 🎭 Deepfake Image Classifier
-
-A deep learning web application that detects whether an image is a real photograph or AI-generated. Built with a fine-tuned ResNet-50 model served through a Streamlit interface.
+This project builds a binary image classifier to automatically distinguish **real photographs** from **AI-generated images**. Using transfer learning on a pre-trained ResNet-50 backbone, the model learns subtle deepfake artifacts without requiring large datasets or extensive compute — and is deployed as a simple web app so anyone can verify an image instantly.
 
 ---
 
@@ -91,6 +87,7 @@ A simple 3-block convolutional network trained from scratch.
 - **Architecture:** 3× Conv2d → ReLU → MaxPool, followed by two fully connected layers
 - **Loss:** `BCEWithLogitsLoss`
 - **Optimizer:** Adam (lr=0.001)
+- **Training time:** ~2h 35m (9,331s) on 150,000 images over 5 epochs
 - **Issue:** No regularization — prone to overfitting. Validation accuracy used `torch.max` on raw logits, which is incorrect for binary classification with a single output neuron.
 
 ### V2 — Custom CNN with Regularization
@@ -99,6 +96,7 @@ Same architecture as V1 but hardened against overfitting.
 
 - **Added:** `BatchNorm2d` / `BatchNorm1d` after every layer, `Dropout2d` (p=0.2) in conv blocks, `Dropout1d` (p=0.4) before the final FC layer
 - **Optimizer:** Adam with L2 weight decay (`weight_decay=1e-4`)
+- **Training time:** ~2h 5m (7,519s) — faster than V1 due to better gradient flow from BatchNorm
 - **Fix:** Validation now uses `torch.sigmoid` + 0.5 threshold — the correct approach for a single-neuron binary output
 
 ### V3 — Transfer Learning with ResNet-50 ✅ *(Final Model)*
@@ -107,6 +105,7 @@ Replaced the custom CNN with a pre-trained ResNet-50 backbone.
 
 - **Architecture:** ResNet-50 (ImageNet weights), all layers frozen except `layer4` and a new FC head with Dropout (p=0.3)
 - **Optimizer:** Adam applied only to trainable parameters (`filter(lambda x: x.requires_grad, ...)`)
+- **Training time:** ~2h 45m (9,887s) — longer per epoch due to deeper architecture, but stronger accuracy
 - **Evaluation:** Classification report + confusion matrix (seaborn heatmap) on the validation set
 - **Output:** Weights saved to `artifacts/model.pth`
 
@@ -118,7 +117,7 @@ This approach converges faster and generalizes better than the custom CNN by lev
 
 All three notebooks share the same data loading and preprocessing setup.
 
-The dataset is organized using `ImageFolder` (one subdirectory per class: `REAL/` and `FAKE/`) and split 75% train / 25% validation using `random_split`. Images are loaded in batches of 32.
+The dataset contains **200,000 images** across 2 classes (`ai` and `real`), organized using `ImageFolder` and split 75/25 into train (150,000) and validation (50,000) sets. Images are loaded in batches of 32.
 
 **Data augmentation** (applied during training):
 - Random rotation (±10°)
@@ -131,9 +130,9 @@ The dataset is organized using `ImageFolder` (one subdirectory per class: `REAL/
 
 ```
 data/
-├── FAKE/
+├── ai/
 │   └── *.jpg / *.png
-└── REAL/
+└── real/
     └── *.jpg / *.png
 ```
 
